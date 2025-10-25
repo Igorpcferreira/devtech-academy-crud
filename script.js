@@ -4,7 +4,7 @@
 class Aluno {
   constructor(nome, idade, curso, notaFinal) {
     this.nome = nome;
-    this.idade = idade;
+    this.idade = parseInt(idade);
     this.curso = curso;
     this.notaFinal = parseFloat(notaFinal);
   }
@@ -18,13 +18,14 @@ class Aluno {
 }
 
 // ============================
-// CRUD com eventos e arrow functions
+// CRUD + Relatórios
 // ============================
 let alunos = [];
 let indiceEdicao = null;
 
 const form = document.getElementById("formAluno");
 const tabela = document.querySelector("#tabelaAlunos tbody");
+const saidaRelatorio = document.getElementById("saidaRelatorio");
 
 // Evento de cadastro
 form.addEventListener("submit", (e) => {
@@ -40,11 +41,9 @@ form.addEventListener("submit", (e) => {
   if (indiceEdicao === null) {
     alunos.push(aluno);
     alert(`✅ Aluno ${aluno.nome} cadastrado com sucesso!`);
-    console.log(`🟢 Novo aluno cadastrado: ${aluno.toString()}`);
   } else {
     alunos[indiceEdicao] = aluno;
     alert(`✏️ Aluno ${aluno.nome} atualizado com sucesso!`);
-    console.log(`🟡 Aluno atualizado: ${aluno.toString()}`);
     indiceEdicao = null;
   }
 
@@ -52,7 +51,7 @@ form.addEventListener("submit", (e) => {
   renderizarTabela();
 });
 
-// Renderiza a tabela de alunos
+// Renderização da tabela
 const renderizarTabela = () => {
   tabela.innerHTML = "";
 
@@ -78,11 +77,9 @@ const renderizarTabela = () => {
     celAcoes.appendChild(btnEditar);
     celAcoes.appendChild(btnExcluir);
   });
-
-  console.log("📋 Lista atualizada de alunos:", alunos.map(a => a.toString()));
 };
 
-// Editar aluno (arrow function)
+// Editar aluno
 const editarAluno = (index) => {
   const aluno = alunos[index];
   document.getElementById("nome").value = aluno.nome;
@@ -90,14 +87,62 @@ const editarAluno = (index) => {
   document.getElementById("curso").value = aluno.curso;
   document.getElementById("nota").value = aluno.notaFinal;
   indiceEdicao = index;
-  console.log(`✏️ Editando aluno: ${aluno.toString()}`);
 };
 
-// Excluir aluno (arrow function)
+// Excluir aluno
 const excluirAluno = (index) => {
   if (confirm("Tem certeza que deseja excluir este aluno?")) {
-    console.log(`🗑️ Aluno excluído: ${alunos[index].toString()}`);
     alunos.splice(index, 1);
     renderizarTabela();
   }
 };
+
+// ============================
+// Relatórios
+// ============================
+
+// 1Alunos Aprovados
+document.getElementById("btnAprovados").addEventListener("click", () => {
+  const aprovados = alunos.filter(a => a.isAprovado());
+  saidaRelatorio.innerHTML = aprovados.length
+    ? "✅ Aprovados:<br>" + aprovados.map(a => a.nome).join(", ")
+    : "Nenhum aluno aprovado.";
+  console.log("📊 Alunos aprovados:", aprovados.map(a => a.toString()));
+});
+
+// Média das Notas
+document.getElementById("btnMediaNotas").addEventListener("click", () => {
+  if (alunos.length === 0) return (saidaRelatorio.textContent = "Nenhum aluno cadastrado.");
+  const media = alunos.map(a => a.notaFinal).reduce((a, b) => a + b, 0) / alunos.length;
+  saidaRelatorio.textContent = `📈 Média das notas: ${media.toFixed(2)}`;
+  console.log("📈 Média das notas:", media);
+});
+
+// Média das Idades
+document.getElementById("btnMediaIdades").addEventListener("click", () => {
+  if (alunos.length === 0) return (saidaRelatorio.textContent = "Nenhum aluno cadastrado.");
+  const media = alunos.map(a => a.idade).reduce((a, b) => a + b, 0) / alunos.length;
+  saidaRelatorio.textContent = `👨‍🏫 Média das idades: ${media.toFixed(1)}`;
+  console.log("👨‍🏫 Média das idades:", media);
+});
+
+// Ordenar Nomes
+document.getElementById("btnOrdenarNomes").addEventListener("click", () => {
+  const nomes = alunos.map(a => a.nome).sort((a, b) => a.localeCompare(b));
+  saidaRelatorio.innerHTML = "🔤 Nomes em ordem alfabética:<br>" + nomes.join(", ");
+  console.log("🔤 Ordem alfabética:", nomes);
+});
+
+// Quantidade de alunos por curso
+document.getElementById("btnPorCurso").addEventListener("click", () => {
+  if (alunos.length === 0) return (saidaRelatorio.textContent = "Nenhum aluno cadastrado.");
+  const contagem = alunos.reduce((acc, aluno) => {
+    acc[aluno.curso] = (acc[aluno.curso] || 0) + 1;
+    return acc;
+  }, {});
+  saidaRelatorio.innerHTML = "📚 Quantidade por curso:<br>" +
+    Object.entries(contagem)
+      .map(([curso, qtd]) => `${curso}: ${qtd}`)
+      .join("<br>");
+  console.log("📚 Quantidade de alunos por curso:", contagem);
+});
